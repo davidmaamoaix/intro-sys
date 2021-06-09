@@ -12,6 +12,9 @@
 
 #include <stdbool.h>
 
+#define MALLOC_CHECK(x, ret) \
+    do { if (x == NULL) return ret; } while (0)
+
 /************** Data structure declarations ****************/
 
 /* Linked list element (You do not need to change this but you may.) */
@@ -27,6 +30,8 @@ typedef struct {
       You will need to add more fields to this structure
       to efficiently implement q_size and q_insert_tail
     */
+    int size;
+    list_ele_t *tail;
 } queue_t;
 
 /************** Operations on queue ************************/

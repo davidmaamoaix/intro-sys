@@ -7,7 +7,7 @@ import os
 
 # Driver program for C programming exercise
 class Tracer:
-    
+
     traceDirectory = "./traces"
     qtest = "./qtest"
     verbLevel = 0
@@ -148,7 +148,7 @@ def run(name, args):
     vlevel = 1
     levelFixed = False
     autograde = False
-    
+
 
     optlist, args = getopt.getopt(args, 'hp:t:v:A')
     for (opt, val) in optlist:
@@ -173,6 +173,6 @@ def run(name, args):
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
-            
-        
+
+
 

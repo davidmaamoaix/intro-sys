@@ -23,13 +23,29 @@
 queue_t *q_new()
 {
     /* Remember to handle the case if malloc returned NULL */
-    return NULL;
+    queue_t *queue = malloc(sizeof(queue_t));
+    MALLOC_CHECK(queue, NULL);
+
+    queue->head = NULL;
+    queue->size = 0;
+
+    return queue;
 }
 
 /* Free all storage used by queue */
 void q_free(queue_t *q)
 {
-    /* Remember to free the queue structue and list elements */
+    if (q == NULL) return;
+
+    list_ele_t *temp;
+    list_ele_t *node = q->head;
+    while (node != NULL) {
+        temp = node->next;
+        free(node);
+        node = temp;
+    }
+    
+    free(q);
 }
 
 /*
@@ -39,8 +55,22 @@ void q_free(queue_t *q)
  */
 bool q_insert_head(queue_t *q, int v)
 {
-    /* What should you do if the q is NULL? */
-    /* What if malloc returned NULL? */
+    MALLOC_CHECK(q, false);
+    list_ele_t *head = malloc(sizeof(list_ele_t));
+    MALLOC_CHECK(head, false);
+
+    if (q->size == 0) {
+        q->head = head;
+        q->tail = head;
+
+        return true;
+    }
+
+    head->value = v;
+    head->next = q->head;
+    q->head = head;
+    ++(q->size);
+
     return true;
 }
 
@@ -52,8 +82,25 @@ bool q_insert_head(queue_t *q, int v)
  */
 bool q_insert_tail(queue_t *q, int v)
 {
-    /* Remember: It should operate in O(1) time */
-    return false;
+    MALLOC_CHECK(q, false);
+    list_ele_t *tail = malloc(sizeof(list_ele_t));
+    MALLOC_CHECK(tail, false);
+
+    tail->value = v;
+    tail->next = NULL;
+
+    if (q->size == 0) {
+        q->head = tail;
+        q->tail = tail;
+
+        return true;
+    }
+
+    q->tail->next = tail;
+    q->tail = tail;
+    ++(q->size);
+
+    return true;
 }
 
 /*
@@ -65,6 +112,16 @@ bool q_insert_tail(queue_t *q, int v)
 */
 bool q_remove_head(queue_t *q, int *vp)
 {
+    MALLOC_CHECK(q, false);
+    if (q->size == 0) return false;
+
+    if (vp != NULL) *vp = q->head->value;
+    list_ele_t *temp = q->head;
+    q->head = q->head->next;
+    free(temp);
+
+    --(q->size);
+
     return true;
 }
 
@@ -74,8 +131,9 @@ bool q_remove_head(queue_t *q, int *vp)
  */
 int q_size(queue_t *q)
 {
-    /* Remember: It should operate in O(1) time */
-    return 0;
+    MALLOC_CHECK(q, 0);
+
+    return q->size;
 }
 
 /*
@@ -87,6 +145,6 @@ int q_size(queue_t *q)
  */
 void q_reverse(queue_t *q)
 {
-
+    if (q == NULL || q->size == 0) return;
 }
 
