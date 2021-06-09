@@ -37,10 +37,9 @@ void q_free(queue_t *q)
 {
     if (q == NULL) return;
 
-    list_ele_t *temp;
     list_ele_t *node = q->head;
     while (node != NULL) {
-        temp = node->next;
+        list_ele_t *temp = node->next;
         free(node);
         node = temp;
     }
@@ -55,20 +54,15 @@ void q_free(queue_t *q)
  */
 bool q_insert_head(queue_t *q, int v)
 {
-    MALLOC_CHECK(q, false);
+    if (q == NULL) return false;
     list_ele_t *head = malloc(sizeof(list_ele_t));
     MALLOC_CHECK(head, false);
 
-    if (q->size == 0) {
-        q->head = head;
-        q->tail = head;
-
-        return true;
-    }
-
-    head->value = v;
     head->next = q->head;
+    head->value = v;
     q->head = head;
+    if (q->size == 0) q->tail = head;
+
     ++(q->size);
 
     return true;
@@ -82,7 +76,7 @@ bool q_insert_head(queue_t *q, int v)
  */
 bool q_insert_tail(queue_t *q, int v)
 {
-    MALLOC_CHECK(q, false);
+    if (q == NULL) return false;
     list_ele_t *tail = malloc(sizeof(list_ele_t));
     MALLOC_CHECK(tail, false);
 
@@ -112,8 +106,7 @@ bool q_insert_tail(queue_t *q, int v)
 */
 bool q_remove_head(queue_t *q, int *vp)
 {
-    MALLOC_CHECK(q, false);
-    if (q->size == 0) return false;
+    if (q == NULL || q->size == 0) return false;
 
     if (vp != NULL) *vp = q->head->value;
     list_ele_t *temp = q->head;
@@ -131,7 +124,7 @@ bool q_remove_head(queue_t *q, int *vp)
  */
 int q_size(queue_t *q)
 {
-    MALLOC_CHECK(q, 0);
+    if (q == NULL) return 0;
 
     return q->size;
 }
@@ -146,5 +139,19 @@ int q_size(queue_t *q)
 void q_reverse(queue_t *q)
 {
     if (q == NULL || q->size == 0) return;
+
+    list_ele_t *head = q->head;
+    list_ele_t *next = head->next;
+    head->next = NULL;
+    q->tail = head;
+
+    while (next != NULL) {
+        list_ele_t *temp = next->next;
+        next->next = head;
+        head = next;
+        next = temp;
+    }
+
+    q->head = head;
 }
 
