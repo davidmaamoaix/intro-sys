@@ -173,8 +173,8 @@ NOTES:
  *   Rating: 1
  */
 int thirdBits(void) {
-    int value = 73; // 1001001
-    value = value << 9 | value; // 1001001001001001
+    int value = 73; // 01001001
+    value = value << 9 | value; // 1001001001001001 (notice the skipped 2 bits)
     value = value << 15 | value; // 1001001001001001001001001001001
     return value;
 }
@@ -186,7 +186,10 @@ int thirdBits(void) {
  *   Rating: 1
  */
 int isTmin(int x) {
-  return 2;
+    int is_zero = !x;
+    int sum = x + x;
+
+    return !(is_zero | sum);
 }
 //2
 /* 
@@ -197,7 +200,7 @@ int isTmin(int x) {
  *   Rating: 2
  */
 int isNotEqual(int x, int y) {
-  return 2;
+  return !!(x ^ y);
 }
 /* 
  * anyOddBit - return 1 if any odd-numbered bit in word set to 1
@@ -206,8 +209,17 @@ int isNotEqual(int x, int y) {
  *   Max ops: 12
  *   Rating: 2
  */
+#include<stdio.h>
 int anyOddBit(int x) {
-    return 2;
+    /*int compare = 85; // 01010101 // ones on even
+    compare = compare << 8 | compare; // 16
+    compare = compare << 16 | compare; // 32 yay*/
+
+    int compare = 170; // 10101010 // ones on odd
+    compare = compare << 8 | compare; // 16
+    compare = compare << 16 | compare; // 32 yay
+
+    return !!(x & compare);
 }
 /* 
  * negate - return -x 
@@ -217,7 +229,7 @@ int anyOddBit(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 //3
 /* 
