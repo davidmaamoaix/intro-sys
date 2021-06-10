@@ -229,7 +229,7 @@ int anyOddBit(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return ~x + 1;
+    return ~x + 1;
 }
 //3
 /* 
@@ -240,7 +240,14 @@ int negate(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+    int condition = !!x;
+    condition = condition | condition << 1; // 2
+    condition = condition | condition << 2; // 4
+    condition = condition | condition << 4; // 8
+    condition = condition | condition << 8; // 16
+    condition = condition | condition << 16; // 32
+
+    return (condition & y) | (~condition & z);
 }
 /* 
  * subOK - Determine if can compute x-y without overflow
@@ -250,8 +257,29 @@ int conditional(int x, int y, int z) {
  *   Max ops: 20
  *   Rating: 3
  */
+#include<stdio.h>
 int subOK(int x, int y) {
-  return 2;
+    int difference = x + (~y + 1); // why not just allow minus tho lol
+
+    // positive - negative = positive
+    // negative - positive = negative
+    // positive - positive = can't possibly overflow
+    // same for negative - negative
+    // so basically overflows if a and b are different AND a and c are different
+
+    // uses too much symbols
+    /*int neg_sign = 1 << 31;
+    int x_sign = !!(x & neg_sign);
+    int y_sign = !!(y & neg_sign);
+    int d_sign = !!(difference & neg_sign);*/
+
+    int neg_sign = 1 << 31;
+    int a = x & neg_sign;
+    int b = y & neg_sign;
+    int c = difference & neg_sign;
+    int overflow = (a ^ b) & (a ^ c);
+
+    return !overflow;
 }
 /* 
  * isGreater - if x > y  then return 1, else return 0 
@@ -261,7 +289,15 @@ int subOK(int x, int y) {
  *   Rating: 3
  */
 int isGreater(int x, int y) {
-  return 2;
+    int neg_sign = 1 << 31;
+    int x_sign = x & neg_sign;
+    int y_sign = y & neg_sign;
+    int diff_sign = x_sign ^ y_sign;
+
+    // if different sign then see if y is negative
+    // else check if y - x is negative (in which case x is greater)
+    // oh and silence the stupid parentheses warning (dude everyone knows the precedence)
+    return !!((y_sign >> 31) & diff_sign) | (((y + (~x + 1)) >> 31) & !diff_sign);
 }
 //4
 /*
@@ -272,7 +308,22 @@ int isGreater(int x, int y) {
  *   Rating: 4
  */
 int bitParity(int x) {
-  return 2;
+    // odd number of 0's <=> odd number of 1's
+    // just xor the hell outta x via manual 'recursion' (well kinda)
+    /*x = x ^ (x >> 16);
+    x = x ^ (x >> 8);
+    x = x ^ (x >> 4);
+    x = x ^ (x >> 2);
+    x = x ^ (x >> 1);*/
+
+    // screw negative numbers
+    x = x ^ (x << 16);
+    x = x ^ (x << 8);
+    x = x ^ (x << 4);
+    x = x ^ (x << 2);
+    x = x ^ (x << 1);
+
+    return (x >> 31) & 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -287,7 +338,8 @@ int bitParity(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+    // i can't do this qwq me trash
+    return 0;
 }
 //float
 /* 
