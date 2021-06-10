@@ -173,7 +173,10 @@ NOTES:
  *   Rating: 1
  */
 int thirdBits(void) {
-  return 2;
+    int value = 73; // 1001001
+    value = value << 9 | value; // 1001001001001001
+    value = value << 15 | value; // 1001001001001001001001001001001
+    return value;
 }
 /*
  * isTmin - returns 1 if x is the minimum, two's complement number,
