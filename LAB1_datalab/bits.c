@@ -354,7 +354,36 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
-  return 2;
+    int sign = (uf >> 31) & 1;
+    int exp = (uf >> 23) & 255;
+    int filter = ~((255 | (1 << 8)) << 23);
+    int frac = uf & filter;
+
+    if (exp == 255) return uf; // is multiple returns allowed
+
+    if (exp != 0) {
+        // normalized
+        exp -= 1;
+
+        if (exp == 0) {
+            // make denormalized
+
+            // round up when > 0.5
+            if ((frac & 3) == 3) frac += 1;
+
+            frac >>= 1;
+            frac |= (1 << 22); // set MSB
+        }
+    } else {
+        //denormalized
+
+        // round up when > 0.5
+        if ((frac & 3) == 3) frac += 1;
+
+        frac >>= 1;
+    }
+
+    return (sign << 31) | (exp << 23) | frac;
 }
 /* 
  * float_i2f - Return bit-level equivalent of expression (float) x
@@ -381,5 +410,12 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+    int sign = (uf >> 31) & 1;
+    int exp = (uf >> 23) & 255;
+    int filter = ~((255 | (1 << 8)) << 23);
+    int frac = uf & filter;
+
+    if (exp < 127) return 0; // 2 ** (-1) is 0.5 so round down
+
+    return 2; // welp can't figure it out
 }
