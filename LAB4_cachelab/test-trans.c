@@ -69,7 +69,8 @@ void eval_perf(unsigned int s, unsigned int E, unsigned int b)
         /* Use valgrind to generate the trace */
 
         sprintf(cmd, "valgrind --tool=lackey --trace-mem=yes --log-fd=1 -v ./tracegen -M %d -N %d -F %d  > trace.tmp", M, N,i);
-        flag=WEXITSTATUS(system(cmd));
+        int tmp = system(cmd);
+        flag=WEXITSTATUS(tmp);
         if (0!=flag) {
             printf("Validation error at function %d! Run ./tracegen -M %d -N %d -F %d for details.\nSkipping performance evaluation for this function.\n",flag-1,M,N,i);      
             continue;
