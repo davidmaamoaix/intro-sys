@@ -53,6 +53,7 @@ struct job_t jobs[MAXJOBS]; /* The job list */
 
 
 /* Function prototypes */
+pid_t Fork();
 
 /* Here are the functions that you will implement */
 void eval(char *cmdline);
@@ -84,6 +85,14 @@ void unix_error(char *msg);
 void app_error(char *msg);
 typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
+
+// fork but with error handling
+pid_t Fork() {
+    pid_t pid = fork();
+    if (pid < 0) unix_error("fork error");
+    
+    return pid;
+}
 
 /*
  * main - The shell's main routine 
@@ -179,7 +188,21 @@ void eval(char *cmdline)
     if (argv[0] == NULL) return; // line empty
 
     if (!builtin_cmd(argv)) {
-        printf("123");
+        if ((pid = Fork()) == 0) { // Fork wraps error yaaaay
+            if (execve(argv[0], argv, environ) < 0) {
+                printf("%s: Command not found\n", argv[0]);
+                exit(0);
+            }
+        }
+
+        if (bg) {
+            printf("%d %s", pid, cmdline);
+        } else {
+            int status;
+            if (waitpid(pid, &status, 0) < 0) {
+                unix_error("waitfg: waitpid error");
+            }
+        }
     }
 
 
@@ -250,13 +273,14 @@ int parseline(const char *cmdline, char **argv)
 int builtin_cmd(char **argv) 
 {
     if (strncmp(argv[0], "quit", MAXLINE) == 0) {
+        exit(0);
+    } else if (strncmp(argv[0], "fg", MAXLINE) == 0 || strncmp(argv[0], "bg", MAXLINE) == 0) {
+        do_bgfg(argv);
 
-    } else if (strncmp(argv[0], "fg", MAXLINE) == 0) {
-
-    } else if (strncmp(argv[0], "bg", MAXLINE) == 0) {
-
+        return 1;
     } else if (strncmp(argv[0], "jobs", MAXLINE) == 0) {
 
+        return 1;
     }
 
     return 0;
