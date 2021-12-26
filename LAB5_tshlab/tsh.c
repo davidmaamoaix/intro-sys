@@ -57,8 +57,8 @@ pid_t Fork();
 
 /* Here are the functions that you will implement */
 void eval(char *cmdline);
-int builtin_cmd(char **argv);
-void do_bgfg(char **argv);
+int builtin_cmd(int argc, char **argv);
+void do_bgfg(char **argv, int jobId);
 void waitfg(pid_t pid);
 
 void sigchld_handler(int sig);
@@ -66,7 +66,7 @@ void sigtstp_handler(int sig);
 void sigint_handler(int sig);
 
 /* Here are helper routines that we've provided for you */
-int parseline(const char *cmdline, char **argv); 
+int parseline(const char *cmdline, char **argv, int *argcAsn); 
 void sigquit_handler(int sig);
 
 void clearjob(struct job_t *job);
@@ -90,7 +90,7 @@ handler_t *Signal(int signum, handler_t *handler);
 pid_t Fork() {
     pid_t pid = fork();
     if (pid < 0) unix_error("fork error");
-    
+
     return pid;
 }
 
@@ -180,14 +180,14 @@ void eval(char *cmdline)
     char buffer[MAXLINE];
     // pid and stuff
     pid_t pid;
-    int bg;
+    int bg, argc;
 
     strncpy(buffer, cmdline, MAXLINE);
-    bg = parseline(buffer, argv);
+    bg = parseline(buffer, argv, &argc);
 
-    if (argv[0] == NULL) return; // line empty
+    if (argv[0] == NULL || bg < 0) return; // line empty/parse error
 
-    if (!builtin_cmd(argv)) {
+    if (!builtin_cmd(argc, argv)) {
         if ((pid = Fork()) == 0) { // Fork wraps error yaaaay
             if (execve(argv[0], argv, environ) < 0) {
                 printf("%s: Command not found\n", argv[0]);
@@ -205,7 +205,6 @@ void eval(char *cmdline)
         }
     }
 
-
     return;
 }
 
@@ -216,7 +215,7 @@ void eval(char *cmdline)
  * argument.  Return true if the user has requested a BG job, false if
  * the user has requested a FG job.  
  */
-int parseline(const char *cmdline, char **argv) 
+int parseline(const char *cmdline, char **argv, int *argcAsn) 
 {
     static char array[MAXLINE]; /* holds local copy of command line */
     char *buf = array;          /* ptr that traverses command line */
@@ -256,12 +255,15 @@ int parseline(const char *cmdline, char **argv)
     }
     argv[argc] = NULL;
     
+    *argcAsn = argc;
+
     if (argc == 0)  /* ignore blank line */
 	return 1;
 
     /* should the job run in the background? */
     if ((bg = (*argv[argc-1] == '&')) != 0) {
 	argv[--argc] = NULL;
+    *argcAsn = argc;
     }
     return bg;
 }
@@ -270,12 +272,24 @@ int parseline(const char *cmdline, char **argv)
  * builtin_cmd - If the user has typed a built-in command then execute
  *    it immediately.  
  */
-int builtin_cmd(char **argv) 
+int builtin_cmd(int argc, char **argv) 
 {
     if (strncmp(argv[0], "quit", MAXLINE) == 0) {
         exit(0);
     } else if (strncmp(argv[0], "fg", MAXLINE) == 0 || strncmp(argv[0], "bg", MAXLINE) == 0) {
-        do_bgfg(argv);
+        if (argc < 2) {
+            printf("%s command requires PID or %%jobid argument\n", argv[0]);
+            printf("%d\n", argc);
+            return 1;
+        }
+
+        int isJobId = argv[1][0] == '%';
+        char *jobIdStr = argv[1];
+        if (isJobId) {
+            jobIdStr = jobIdStr + 1;
+        }
+
+        do_bgfg(argv, atoi(jobIdStr));
 
         return 1;
     } else if (strncmp(argv[0], "jobs", MAXLINE) == 0) {
@@ -289,8 +303,10 @@ int builtin_cmd(char **argv)
 /* 
  * do_bgfg - Execute the builtin bg and fg commands
  */
-void do_bgfg(char **argv) 
+void do_bgfg(char **argv, int jobId)  
 {
+    
+
     return;
 }
 
