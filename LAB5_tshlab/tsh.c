@@ -332,6 +332,13 @@ void do_bgfg(char **argv, int isJob, int id)
  */
 void waitfg(pid_t pid)
 {
+    sigset_t waitSet;
+
+    while (fgpid(jobs) == pid) {
+        sigemptyset(&waitSet); // clear set
+        sigsuspend(&waitSet); // wait until signal
+    }
+
     return;
 }
 
