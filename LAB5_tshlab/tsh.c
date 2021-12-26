@@ -312,6 +312,11 @@ void do_bgfg(char **argv, int isJob, int id)
         job = getjobpid(jobs, (pid_t) id);
     }
 
+    if (job == NULL) {
+        printf("(%d): No such process\n", id);
+        return;
+    }
+
     if (fg) {
         job->state = FG;
     } else {
